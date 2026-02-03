@@ -982,15 +982,30 @@
            ═══════════════════════════════════════════ */
         @media (max-width: 900px) {
             .slide {
-                padding: 40px 32px;
+                padding: 60px 32px 40px;
+                justify-content: flex-start;
             }
+
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.4rem; }
+            h3 { font-size: 1.1rem; }
 
             .grid-2, .compare-grid {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
 
             .grid-3 {
                 grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .stat-card {
+                padding: 16px;
             }
 
             .grid-4 {
@@ -1037,8 +1052,14 @@
 
         @media (max-width: 600px) {
             .slide {
-                padding: 32px 20px;
+                padding: 48px 16px 40px;
             }
+
+            h1 { font-size: 1.4rem; }
+            h2 { font-size: 1.15rem; }
+            h3 { font-size: 0.95rem; }
+            p, li { font-size: 0.85rem; }
+            .label { font-size: 0.65rem; }
 
             .grid-4 {
                 grid-template-columns: 1fr;
