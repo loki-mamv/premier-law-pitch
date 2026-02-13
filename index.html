@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premier Law × MAMV — Let's Build Something Better</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c1220;
+            --bg-card: #141e30;
+            --bg-card-hover: #1a2740;
+            --text: #e8edf5;
+            --text-muted: #8494ad;
+            --accent: #38bdf8;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --accent-amber: #fbbf24;
+            --accent-purple: #a78bfa;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'DM Sans', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            line-height: 1.6;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-purple));
+            width: 0%;
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        /* Nav dots */
+        .nav-dots {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-dot:hover, .nav-dot.active {
+            background: var(--accent);
+            transform: scale(1.4);
+        }
+
+        .nav-dot .tooltip {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-card);
+            color: var(--text);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            font-family: var(--font-body);
+        }
+
+        .nav-dot:hover .tooltip { opacity: 1; }
+
+        /* Slides */
+        .slide {
+            min-height: 100vh;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 80px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Stagger children */
+        .slide.visible .stagger { opacity: 1; transform: translateY(0); }
+        .stagger {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .stagger:nth-child(1) { transition-delay: 0.1s; }
+        .stagger:nth-child(2) { transition-delay: 0.2s; }
+        .stagger:nth-child(3) { transition-delay: 0.3s; }
+        .stagger:nth-child(4) { transition-delay: 0.4s; }
+        .stagger:nth-child(5) { transition-delay: 0.5s; }
+        .stagger:nth-child(6) { transition-delay: 0.6s; }
+        .stagger:nth-child(7) { transition-delay: 0.7s; }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+
+        .label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .highlight { color: var(--accent); }
+        .green { color: var(--accent-green); }
+        .red { color: var(--accent-red); }
+        .amber { color: var(--accent-amber); }
+
+        /* Grid layouts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 24px; }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .card p { color: var(--text-muted); font-size: 0.95rem; margin-top: 8px; }
+
+        /* Comparison table */
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 24px;
+            font-size: 0.95rem;
+        }
+
+        .compare-table th {
+            font-family: var(--font-display);
+            font-weight: 600;
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .compare-table td {
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+        }
+
+        .compare-table tr td:first-child { color: var(--text); font-weight: 500; }
+
+        /* Price card */
+        .price-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 36px;
+            border: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+
+        .price-card.featured {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(167,139,250,0.08));
+        }
+
+        .price-amount {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin: 12px 0 4px;
+        }
+
+        .price-period { color: var(--text-muted); font-size: 0.9rem; }
+
+        .price-list {
+            list-style: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .price-list li {
+            padding: 8px 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .price-list li::before {
+            content: '✓';
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Big number */
+        .big-number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* Icon circles */
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .icon-blue { background: rgba(56,189,248,0.15); }
+        .icon-green { background: rgba(52,211,153,0.15); }
+        .icon-amber { background: rgba(251,191,36,0.15); }
+        .icon-purple { background: rgba(167,139,250,0.15); }
+        .icon-red { background: rgba(248,113,113,0.15); }
+
+        /* Pain point list */
+        .pain-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .pain-list li {
+            padding: 12px 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        /* Background decorations */
+        .bg-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.07;
+            pointer-events: none;
+        }
+
+        /* CTA */
+        .cta-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-purple));
+            color: #fff;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            margin-top: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(56,189,248,0.3);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin-top: 32px;
+            padding-left: 32px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--accent), var(--accent-purple));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 6px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 3px solid var(--bg);
+        }
+
+        .timeline-item h3 { font-size: 1.1rem; }
+        .timeline-item p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide { padding: 40px 28px; }
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.7rem; }
+            .subtitle { font-size: 1rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .nav-dots { right: 12px; gap: 8px; }
+            .nav-dot { width: 8px; height: 8px; }
+            .nav-dot .tooltip { display: none; }
+            .big-number { font-size: 2.8rem; }
+            .price-amount { font-size: 2rem; }
+            .compare-table { font-size: 0.8rem; }
+            .compare-table th, .compare-table td { padding: 8px 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .slide { padding: 32px 20px; }
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.4rem; }
+            .card { padding: 20px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .slide, .stagger { transition: none; opacity: 1; transform: none; }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- Slide 1: Title -->
+<section class="slide" data-title="Intro">
+    <div class="bg-glow" style="background: var(--accent); top: -200px; right: -200px;"></div>
+    <div class="stagger label">Premier Law × Mike Maseda</div>
+    <h1 class="stagger">Let's Get Premier Law<br><span class="highlight">Actually Online</span></h1>
+    <p class="stagger subtitle">Your website is down, FindLaw is eating your money, and every day without a web presence is clients going to your competitors. Let's fix all of it.</p>
+    <p class="stagger" style="color: var(--text-muted); margin-top: 40px; font-size: 0.85rem;">Use arrow keys, scroll, or swipe to navigate →</p>
+</section>
+
+<!-- Slide 2: The Problem -->
+<section class="slide" data-title="The Problem">
+    <div class="stagger label">The Reality Check</div>
+    <h2 class="stagger">Here's What's Happening<br>Right Now</h2>
+    <ul class="pain-list">
+        <li class="stagger"><span style="font-size: 1.4rem;">🔴</span> <strong>premierlawpllc.com is DOWN</strong> — potential clients see nothing</li>
+        <li class="stagger"><span style="font-size: 1.4rem;">💸</span> <strong>FindLaw is charging ~$850/mo</strong> — for a template site that doesn't even work</li>
+        <li class="stagger"><span style="font-size: 1.4rem;">📱</span> <strong>50 Facebook likes</strong> — essentially zero digital presence</li>
+        <li class="stagger"><span style="font-size: 1.4rem;">🔍</span> <strong>No local SEO</strong> — you're invisible when someone Googles "Tampa real estate attorney"</li>
+        <li class="stagger"><span style="font-size: 1.4rem;">📋</span> <strong>Manual everything</strong> — intake, scheduling, follow-ups, all by hand</li>
+    </ul>
+</section>
+
+<!-- Slide 3: FindLaw Comparison -->
+<section class="slide" data-title="FindLaw vs. Us">
+    <div class="bg-glow" style="background: var(--accent-red); bottom: -200px; left: -200px;"></div>
+    <div class="stagger label">Why FindLaw Is Costing You</div>
+    <h2 class="stagger"><span class="red">FindLaw</span> vs. What I'll Build</h2>
+    <table class="compare-table stagger">
+        <thead>
+            <tr>
+                <th></th>
+                <th style="color: var(--accent-red);">FindLaw</th>
+                <th style="color: var(--accent-green);">Mike's Build</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Monthly Cost</td><td>$500–1,000+/mo</td><td>~$20/mo hosting</td></tr>
+            <tr><td>Design</td><td>Cookie-cutter template</td><td>Custom, branded for Premier Law</td></tr>
+            <tr><td>Page Speed</td><td>Slow (bloated platform)</td><td>Sub-2s load times</td></tr>
+            <tr><td>SEO</td><td>Generic, no local focus</td><td>Tampa-specific, schema markup, GBP</td></tr>
+            <tr><td>Mobile</td><td>Passable</td><td>Mobile-first design</td></tr>
+            <tr><td>Ownership</td><td>They own it — you leave, it's gone</td><td>You own everything, forever</td></tr>
+            <tr><td>Support</td><td>Call center tickets</td><td>Text me anytime</td></tr>
+        </tbody>
+    </table>
+    <p class="stagger" style="color: var(--accent-green); margin-top: 20px; font-size: 1.1rem; font-weight: 600;">
+        → Over 12 months, FindLaw costs $6,000–$12,000 for less.
+    </p>
+</section>
+
+<!-- Slide 4: Phase 1 -->
+<section class="slide" data-title="Phase 1: Website">
+    <div class="stagger label">Phase 1</div>
+    <h2 class="stagger">A Website That Actually<br><span class="highlight">Wins You Clients</span></h2>
+    <div class="grid-3 stagger">
+        <div class="card">
+            <div class="icon-circle icon-blue">⚡</div>
+            <h3>Fast & Modern</h3>
+            <p>Sub-2-second loads. Clean design that says "I'm a serious attorney" not "I bought a template."</p>
+        </div>
+        <div class="card">
+            <div class="icon-circle icon-green">📍</div>
+            <h3>Local SEO Built In</h3>
+            <p>Google Business Profile optimization, schema markup, Tampa-specific keywords baked into every page.</p>
+        </div>
+        <div class="card">
+            <div class="icon-circle icon-amber">📱</div>
+            <h3>Mobile-First</h3>
+            <p>70%+ of legal searches are on phones. Your site will look great on every screen size.</p>
+        </div>
+    </div>
+    <div class="grid-3 stagger" style="margin-top: 0;">
+        <div class="card">
+            <div class="icon-circle icon-purple">🎯</div>
+            <h3>Conversion-Focused</h3>
+            <p>Clear CTAs, easy contact forms, click-to-call. Turn visitors into consultations.</p>
+        </div>
+        <div class="card">
+            <div class="icon-circle icon-red">🏗️</div>
+            <h3>Practice Area Pages</h3>
+            <p>Dedicated pages for real estate, telecom, and estate planning — each optimized to rank.</p>
+        </div>
+        <div class="card">
+            <div class="icon-circle icon-blue">🔒</div>
+            <h3>You Own It</h3>
+            <p>No vendor lock-in. Your domain, your code, your content. Leave anytime with everything.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 5: Phase 2 -->
+<section class="slide" data-title="Phase 2: Automation">
+    <div class="bg-glow" style="background: var(--accent-green); top: -100px; left: -200px;"></div>
+    <div class="stagger label">Phase 2</div>
+    <h2 class="stagger">Automate the <span class="green">Annoying Work</span></h2>
+    <p class="stagger subtitle" style="margin-bottom: 24px;">All the stuff that eats your time but doesn't require a law degree.</p>
+    <div class="grid-2 stagger">
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="icon-circle icon-blue" style="margin-bottom: 0;">📝</div>
+            <div>
+                <h3>Client Intake</h3>
+                <p>Online forms → CRM → automatic follow-up emails. No more phone tag for basic info.</p>
+            </div>
+        </div>
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="icon-circle icon-green" style="margin-bottom: 0;">📄</div>
+            <div>
+                <h3>Document Generation</h3>
+                <p>Templates for real estate contracts, estate planning docs. Fill in details, generate in seconds.</p>
+            </div>
+        </div>
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="icon-circle icon-amber" style="margin-bottom: 0;">📅</div>
+            <div>
+                <h3>Scheduling</h3>
+                <p>Clients book consultations directly from your site. Syncs with your calendar, sends reminders.</p>
+            </div>
+        </div>
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="icon-circle icon-purple" style="margin-bottom: 0;">⭐</div>
+            <div>
+                <h3>Review Management</h3>
+                <p>Automatic review requests after closings. Build your Google rating on autopilot.</p>
+            </div>
+        </div>
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="icon-circle icon-red" style="margin-bottom: 0;">💰</div>
+            <div>
+                <h3>Billing & Invoicing</h3>
+                <p>Automated invoices, payment reminders, and online payment options for clients.</p>
+            </div>
+        </div>
+        <div class="card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="icon-circle icon-blue" style="margin-bottom: 0;">📧</div>
+            <div>
+                <h3>Email Sequences</h3>
+                <p>Drip campaigns for leads, follow-up sequences for clients. Stay top of mind automatically.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 6: Phase 3 -->
+<section class="slide" data-title="Phase 3: Growth">
+    <div class="stagger label">Phase 3</div>
+    <h2 class="stagger">Marketing & <span class="highlight">Lead Generation</span></h2>
+    <p class="stagger subtitle" style="margin-bottom: 24px;">Once the foundation is solid, we turn on the growth engine.</p>
+    <div class="grid-2 stagger">
+        <div class="card">
+            <h3>🔍 Local SEO Domination</h3>
+            <p>Rank for "Tampa real estate attorney", "Tampa estate planning lawyer", "FL telecom attorney." The keywords people actually search.</p>
+        </div>
+        <div class="card">
+            <h3>📢 Google Ads (PPC)</h3>
+            <p>Targeted ads for high-intent searches. Someone Googling "real estate lawyer near me" sees Premier Law first.</p>
+        </div>
+        <div class="card">
+            <h3>✍️ Content Marketing</h3>
+            <p>Blog posts on FL real estate law, estate planning guides, telecom regulations. Builds authority and organic traffic.</p>
+        </div>
+        <div class="card">
+            <h3>📊 Lead Dashboard</h3>
+            <p>See exactly where leads come from, which ones convert, and what your cost per client is. Real data, not guessing.</p>
+        </div>
+    </div>
+    <div class="grid-3 stagger" style="margin-top: 0;">
+        <div class="card" style="text-align: center;">
+            <div class="big-number highlight">3×</div>
+            <p>Average increase in organic traffic after local SEO optimization</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <div class="big-number green">$50–150</div>
+            <p>Cost per lead with targeted Google Ads vs. $300+ industry average</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <div class="big-number amber">85%</div>
+            <p>Of people choose an attorney from the first page of Google</p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 7: Timeline -->
+<section class="slide" data-title="Timeline">
+    <div class="bg-glow" style="background: var(--accent-purple); bottom: -200px; right: -200px;"></div>
+    <div class="stagger label">Rollout Plan</div>
+    <h2 class="stagger">How We Get There</h2>
+    <div class="grid-2" style="align-items: start;">
+        <div class="timeline stagger">
+            <div class="timeline-item">
+                <h3>Weeks 1–2: Discovery & Design</h3>
+                <p>Nail down branding, sitemap, content. You review mockups before a line of code is written.</p>
+            </div>
+            <div class="timeline-item">
+                <h3>Weeks 3–4: Build & Launch Site</h3>
+                <p>Custom site goes live. Google Business Profile optimized. FindLaw cancelled. Immediate savings.</p>
+            </div>
+            <div class="timeline-item">
+                <h3>Months 2–3: Automation Setup</h3>
+                <p>Client intake forms, scheduling, email sequences, review requests — all wired up.</p>
+            </div>
+            <div class="timeline-item">
+                <h3>Month 3+: Growth Phase</h3>
+                <p>SEO content, Google Ads, social presence. Track results monthly, adjust strategy based on data.</p>
+            </div>
+        </div>
+        <div class="stagger">
+            <div class="card" style="margin-bottom: 16px;">
+                <h3 style="color: var(--accent-green);">Quick Wins (First 30 Days)</h3>
+                <ul style="list-style: none; margin-top: 12px;">
+                    <li style="padding: 6px 0; color: var(--text-muted);">✅ Website live and looking professional</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">✅ FindLaw cancelled → save $500-1K/mo</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">✅ Google Business Profile claimed & optimized</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">✅ Online booking for consultations</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">✅ Click-to-call on mobile</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="color: var(--accent);">90-Day Goals</h3>
+                <ul style="list-style: none; margin-top: 12px;">
+                    <li style="padding: 6px 0; color: var(--text-muted);">🎯 Ranking on page 1 for Tampa legal keywords</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">🎯 Automated client intake saving 5+ hrs/week</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">🎯 Steady stream of Google reviews coming in</li>
+                    <li style="padding: 6px 0; color: var(--text-muted);">🎯 First leads from organic search & ads</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 8: Pricing -->
+<section class="slide" data-title="Investment">
+    <div class="stagger label">Investment</div>
+    <h2 class="stagger">What This Looks Like</h2>
+    <p class="stagger subtitle" style="margin-bottom: 8px;">Flexible — start with Phase 1, add on as you see results.</p>
+    <div class="grid-3 stagger">
+        <div class="price-card">
+            <div class="label" style="color: var(--accent-green);">Phase 1</div>
+            <h3>Website & SEO</h3>
+            <div class="price-amount green">$2,500</div>
+            <div class="price-period">one-time build + $100/mo maintenance</div>
+            <ul class="price-list">
+                <li>Custom-designed responsive site</li>
+                <li>Practice area pages (3)</li>
+                <li>Local SEO & schema markup</li>
+                <li>Google Business Profile setup</li>
+                <li>Contact forms & click-to-call</li>
+                <li>SSL, hosting, domain setup</li>
+                <li>Monthly updates & maintenance</li>
+            </ul>
+        </div>
+        <div class="price-card featured">
+            <div class="label">Phase 1 + 2</div>
+            <h3>Website + Automation</h3>
+            <div class="price-amount highlight">$5,000</div>
+            <div class="price-period">one-time build + $250/mo</div>
+            <ul class="price-list">
+                <li>Everything in Phase 1</li>
+                <li>Client intake automation</li>
+                <li>Online scheduling system</li>
+                <li>Email follow-up sequences</li>
+                <li>Review request automation</li>
+                <li>Document templates</li>
+                <li>CRM setup & training</li>
+            </ul>
+        </div>
+        <div class="price-card">
+            <div class="label" style="color: var(--accent-purple);">Full Package</div>
+            <h3>Website + Auto + Marketing</h3>
+            <div class="price-amount" style="color: var(--accent-purple);">$7,500</div>
+            <div class="price-period">one-time build + $500/mo</div>
+            <ul class="price-list">
+                <li>Everything in Phase 1 & 2</li>
+                <li>Monthly SEO content (2 posts)</li>
+                <li>Google Ads management</li>
+                <li>Social media presence</li>
+                <li>Lead tracking dashboard</li>
+                <li>Monthly performance reports</li>
+                <li>Email newsletter setup</li>
+            </ul>
+        </div>
+    </div>
+    <p class="stagger" style="color: var(--text-muted); margin-top: 20px; font-size: 0.9rem; text-align: center;">
+        Compare: FindLaw alone costs $6,000–$12,000/year for just a basic website. Phase 1 pays for itself in 3–5 months of FindLaw savings.
+    </p>
+</section>
+
+<!-- Slide 9: Why Me -->
+<section class="slide" data-title="Why Mike">
+    <div class="bg-glow" style="background: var(--accent); top: -200px; left: 50%; margin-left: -250px;"></div>
+    <div class="stagger label">Why Work With Me</div>
+    <h2 class="stagger">Not a Vendor. <span class="highlight">A Partner.</span></h2>
+    <div class="grid-2 stagger">
+        <div>
+            <ul class="pain-list" style="margin-top: 0;">
+                <li>🤝 <strong>We're friends</strong> — I'm invested in Premier Law succeeding, not billing hours</li>
+                <li>⚡ <strong>I move fast</strong> — no agency bureaucracy, no account managers, just direct work</li>
+                <li>🧠 <strong>Tech + Business</strong> — I build systems that grow your practice, not just pretty pages</li>
+                <li>📊 <strong>Data-driven</strong> — everything measured, nothing wasted</li>
+                <li>🔧 <strong>Full stack</strong> — website, automation, marketing, all from one person who gets the whole picture</li>
+            </ul>
+        </div>
+        <div>
+            <div class="card" style="border-color: rgba(56,189,248,0.2);">
+                <h3 style="margin-bottom: 16px;">The Bottom Line</h3>
+                <p style="font-size: 1.05rem; color: var(--text); line-height: 1.7;">
+                    You're a great attorney doing real estate, telecom, and estate planning in Tampa. You shouldn't also have to be a web developer, marketing expert, and IT department.
+                </p>
+                <p style="font-size: 1.05rem; color: var(--text); line-height: 1.7; margin-top: 12px;">
+                    Let me handle the digital side so you can focus on what you're actually good at — practicing law and growing your client base.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 10: CTA -->
+<section class="slide" data-title="Let's Go" style="text-align: center; align-items: center;">
+    <div class="bg-glow" style="background: var(--accent); top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+    <div class="stagger label">Next Step</div>
+    <h1 class="stagger">Let's Get<br><span class="highlight">Premier Law Online</span></h1>
+    <p class="stagger subtitle" style="text-align: center; max-width: 500px;">
+        Every day without a website is clients finding someone else. Let's fix that — starting this week.
+    </p>
+    <p class="stagger" style="margin-top: 32px; font-size: 1.1rem;">
+        Start with Phase 1. See results. Then we'll talk about Phase 2.
+    </p>
+    <div class="stagger" style="margin-top: 40px; color: var(--text-muted); font-size: 0.95rem;">
+        <p>Mike Maseda · <a href="mailto:mike@mamv.co" style="color: var(--accent); text-decoration: none;">mike@mamv.co</a></p>
+    </div>
+</section>
+
+<script>
+    // Build nav dots
+    const slides = document.querySelectorAll('.slide');
+    const navDotsContainer = document.getElementById('navDots');
+    const progressBar = document.getElementById('progress');
+
+    slides.forEach((slide, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'nav-dot';
+        dot.dataset.slide = i;
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = slide.dataset.title || `Slide ${i + 1}`;
+        dot.appendChild(tooltip);
+        navDotsContainer.appendChild(dot);
+    });
+
+    const navDots = document.querySelectorAll('.nav-dot');
+    let currentSlide = 0;
+    let isNavigating = false;
+
+    function goToSlide(index, smooth = true) {
+        if (index < 0 || index >= slides.length || isNavigating) return;
+        isNavigating = true;
+        slides[index].classList.add('visible');
+        slides[index].scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' });
+        currentSlide = index;
+        updateNav();
+        updateProgress();
+        setTimeout(() => { isNavigating = false; }, smooth ? 600 : 100);
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !isNavigating) {
+                entry.target.classList.add('visible');
+                const index = Array.from(slides).indexOf(entry.target);
+                if (index !== currentSlide) {
+                    currentSlide = index;
+                    updateNav();
+                    updateProgress();
+                }
+            }
+        });
+    }, { threshold: 0.3 });
+
+    slides.forEach(slide => observer.observe(slide));
+
+    function updateNav() {
+        navDots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
+    }
+
+    function updateProgress() {
+        progressBar.style.width = ((currentSlide + 1) / slides.length) * 100 + '%';
+    }
+
+    navDots.forEach(dot => {
+        dot.addEventListener('click', () => goToSlide(parseInt(dot.dataset.slide)));
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            goToSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            goToSlide(currentSlide - 1);
+        }
+    });
+
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+        const diff = touchStartY - e.changedTouches[0].clientY;
+        if (Math.abs(diff) > 50) goToSlide(currentSlide + (diff > 0 ? 1 : -1));
+    }, { passive: true });
+
+    slides[0].classList.add('visible');
+    updateProgress();
+</script>
+
+</body>
+</html>
